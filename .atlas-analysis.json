@@ -1,0 +1,57 @@
+{
+  "projectType": "cli-tool",
+  "projectName": "whecho",
+  "projectDescription": "Linux echo with webhooks for instant job completion notifications",
+  "theme": "palm",
+  "primaryColor": "#22bd7a",
+  "lightColor": "#0f0d51",
+  "darkColor": "#cee1df",
+  "navigation": {
+    "groups": [
+      {
+        "group": "Get Started",
+        "pages": [
+          "introduction",
+          "installation",
+          "quickstart"
+        ]
+      },
+      {
+        "group": "Guides",
+        "pages": [
+          "guides/configuration",
+          "guides/shell-usage",
+          "guides/python-integration",
+          "guides/supported-platforms"
+        ]
+      },
+      {
+        "group": "Reference",
+        "pages": [
+          "reference/command-reference",
+          "reference/python-api"
+        ]
+      },
+      {
+        "group": "Help",
+        "pages": [
+          "help/troubleshooting",
+          "help/faq"
+        ]
+      }
+    ]
+  },
+  "keyFeatures": [
+    "Send webhook notifications from command line",
+    "Support for Discord, Slack, Webex, and Teams",
+    "Python API for programmatic usage",
+    "Cross-platform support (Linux, Windows, macOS)",
+    "Simple configuration management"
+  ],
+  "publicApiSurface": [
+    "whecho [message]",
+    "whecho --init",
+    "whecho -u [url] [message]",
+    "whecho_simple(msg, url, debug)"
+  ]
+}
