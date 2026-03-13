@@ -1,97 +1,89 @@
 ---
-title: "Introduction"
-description: "Welcome to the new home for your documentation"
+title: "Linux echo with webhooks"
+description: "Get instant notifications when your jobs finish - never guess when a long-running task completes again"
 ---
 
-## Setting up
+<div className="flex flex-col items-center justify-center py-12 text-center">
+  <h1 className="text-5xl font-bold mb-6 bg-gradient-to-r from-[#22bd7a] to-[#0f0d51] bg-clip-text text-transparent">
+    whecho
+  </h1>
+  <p className="text-xl text-gray-600 dark:text-gray-400 max-w-2xl mb-8">
+    Linux echo but with webhooks! Send instant notifications to Discord, Slack, Webex, and Teams when your commands finish.
+  </p>
+</div>
 
-Get your documentation site up and running in minutes.
+## Get Started in Seconds
 
-<Card
-  title="Start here"
-  icon="rocket"
-  href="/quickstart"
-  horizontal
->
-  Follow our three step quickstart guide.
-</Card>
-
-## Make it yours
-
-Design a docs site that looks great and empowers your users.
-
-<Columns cols={2}>
-  <Card
-    title="Edit locally"
-    icon="pen-to-square"
-    href="/development"
-  >
-    Edit your docs locally and preview them in real time.
+<CardGroup cols={2}>
+  <Card title="Installation" icon="download" href="/installation">
+    Install whecho with pip in seconds
   </Card>
-  <Card
-    title="Customize your site"
-    icon="palette"
-    href="/essentials/settings"
-  >
-    Customize the design and colors of your site to match your brand.
+  <Card title="Quickstart" icon="rocket" href="/quickstart">
+    Send your first webhook notification
   </Card>
-    <Card
-    title="Set up navigation"
-    icon="map"
-    href="/essentials/navigation"
-  >
-    Organize your docs to help users find what they need and succeed with your product.
-  </Card>
-  <Card
-    title="API documentation"
-    icon="terminal"
-    href="/api-reference/introduction"
-  >
-    Auto-generate API documentation from OpenAPI specifications.
-  </Card>
-</Columns>
+</CardGroup>
 
-## Create beautiful pages
+## Key Features
 
-Everything you need to create world-class documentation.
+<CardGroup cols={2}>
+  <Card title="Command Line First" icon="terminal">
+    Simple CLI interface - just add `whecho` before or after any command
+  </Card>
+  <Card title="Multi-Platform Webhooks" icon="webhook">
+    Support for Discord, Slack, Webex, and Microsoft Teams out of the box
+  </Card>
+  <Card title="Python Integration" icon="code">
+    Use whecho programmatically in your Python scripts and applications
+  </Card>
+  <Card title="Cross-Platform" icon="laptop">
+    Works on Linux, Windows, and macOS - one tool for all your systems
+  </Card>
+</CardGroup>
 
-<Columns cols={2}>
-  <Card
-    title="Write with MDX"
-    icon="pen-fancy"
-    href="/essentials/markdown"
-  >
-    Use MDX to style your docs pages.
-  </Card>
-  <Card
-    title="Code samples"
-    icon="code"
-    href="/essentials/code"
-  >
-    Add sample code to demonstrate how to use your product.
-  </Card>
-  <Card
-    title="Images"
-    icon="image"
-    href="/essentials/images"
-  >
-    Display images and other media.
-  </Card>
-  <Card
-    title="Reusable snippets"
-    icon="recycle"
-    href="/essentials/reusable-snippets"
-  >
-    Write once and reuse across your docs.
-  </Card>
-</Columns>
+## Perfect For
 
-## Need inspiration?
+<AccordionGroup>
+  <Accordion title="Long-Running Jobs">
+    Get notified when builds, tests, data processing, or any lengthy task completes - no more checking terminal windows
+  </Accordion>
+  <Accordion title="DevOps & SRE">
+    Monitor deployments, CI/CD pipelines, and automation scripts with instant webhook notifications
+  </Accordion>
+  <Accordion title="Data Scientists">
+    Know exactly when your model training finishes without constantly monitoring progress
+  </Accordion>
+  <Accordion title="System Administrators">
+    Track maintenance tasks, backups, and scheduled jobs across multiple servers
+  </Accordion>
+</AccordionGroup>
 
-<Card
-  title="See complete examples"
-  icon="stars"
-  href="https://mintlify.com/customers"
->
-  Browse our showcase of exceptional documentation sites.
-</Card>
+## Quick Example
+
+```bash Terminal
+# Install
+pip install whecho
+
+# Configure once
+whecho --init
+
+# Use anywhere
+whecho "Build completed successfully!"
+```
+
+<Note>
+  Never waste time waiting for commands to finish. Let whecho notify you instantly.
+</Note>
+
+## What's Next?
+
+<CardGroup cols={3}>
+  <Card title="Configuration Guide" icon="gear" href="/guides/configuration">
+    Set up webhook URLs and customize settings
+  </Card>
+  <Card title="Shell Usage" icon="terminal" href="/guides/shell-usage">
+    Learn advanced command-line patterns
+  </Card>
+  <Card title="Python API" icon="code" href="/reference/python-api">
+    Integrate whecho into your Python code
+  </Card>
+</CardGroup>

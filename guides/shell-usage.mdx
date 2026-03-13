@@ -1,0 +1,308 @@
+---
+title: Shell Usage & Automation
+description: Advanced patterns for using whecho in shell scripts, automation workflows, and command-line operations
+---
+
+## Overview
+
+Whecho integrates seamlessly with shell commands, making it perfect for automation, monitoring, and notifications in scripts and CI/CD pipelines.
+
+## Basic Usage
+
+### Sending Simple Messages
+
+```bash
+whecho "Build completed successfully"
+```
+
+You can also use the `-m` or `--msg` flag:
+
+```bash
+whecho -m "Deployment finished"
+```
+
+## Command Chaining
+
+Whecho shines when combined with other commands to create notification workflows.
+
+### Notify After Command Completion
+
+<CodeGroup>
+```bash Notify on Success
+make build && whecho "Build completed successfully!"
+```
+
+```bash Notify on Failure
+make build || whecho "Build failed!"
+```
+
+```bash Notify Either Way
+make build; whecho "Build process finished (check logs for status)"
+```
+</CodeGroup>
+
+### Capture Command Output
+
+Send command output directly to your webhook:
+
+```bash
+whecho "Disk usage: $(df -h / | tail -1)"
+```
+
+```bash
+whecho "Latest commit: $(git log -1 --oneline)"
+```
+
+```bash
+whecho "Server uptime: $(uptime)"
+```
+
+## Script Integration
+
+### Build Notifications
+
+<CodeGroup>
+```bash Build Script
+#!/bin/bash
+set -e
+
+whecho "Starting build process..."
+
+# Run build
+if npm run build; then
+  whecho "✓ Build completed successfully"
+else
+  whecho "✗ Build failed - check logs"
+  exit 1
+fi
+```
+
+```bash Deployment Script
+#!/bin/bash
+ENV=$1
+
+whecho "Deploying to $ENV environment..."
+
+if ./deploy.sh $ENV; then
+  whecho "✓ Deployment to $ENV completed"
+else
+  whecho "✗ Deployment to $ENV failed"
+  exit 1
+fi
+```
+</CodeGroup>
+
+### Long-Running Job Monitoring
+
+Get notified when long operations complete:
+
+```bash
+#!/bin/bash
+# backup.sh - Database backup script
+
+DB_NAME="production"
+BACKUP_DIR="/backups"
+TIMESTAMP=$(date +%Y%m%d_%H%M%S)
+
+whecho "Starting backup of $DB_NAME database..."
+
+pg_dump $DB_NAME > $BACKUP_DIR/backup_$TIMESTAMP.sql
+
+if [ $? -eq 0 ]; then
+  SIZE=$(du -h $BACKUP_DIR/backup_$TIMESTAMP.sql | cut -f1)
+  whecho "✓ Backup completed successfully. Size: $SIZE"
+else
+  whecho "✗ Backup failed for $DB_NAME"
+  exit 1
+fi
+```
+
+<Tip>
+  Use whecho at the start and end of long-running jobs so you know when they begin and complete, especially useful for overnight tasks.
+</Tip>
+
+### Cron Job Notifications
+
+Add whecho to your cron jobs for monitoring:
+
+```bash
+# Crontab entry - run backup daily at 2 AM
+0 2 * * * /home/user/backup.sh && whecho "Daily backup completed" || whecho "Daily backup failed"
+```
+
+```bash
+# Check disk space every hour
+0 * * * * [ $(df / | tail -1 | awk '{print $5}' | sed 's/%//') -gt 80 ] && whecho "Warning: Disk usage above 80%"
+```
+
+## Debug Mode
+
+Use the `--debug` flag to see detailed information about what whecho is doing:
+
+```bash
+whecho "Test message" --debug
+```
+
+Debug mode shows:
+- Configuration file path being used
+- Detected webhook platform (Discord, Slack, etc.)
+- Request payload being sent
+- HTTP response from the webhook
+
+<CodeGroup>
+```bash Debug Output (Discord)
+$ whecho "Hello" --debug
+Config pulled from : /home/user/.config/.whecho/config.toml
+Detected discord.com in URL
+Data: {'username': 'john@my-laptop', 'content': 'Hello'}
+Response: <Response [204]>
+```
+
+```bash Debug Output (Generic)
+$ whecho "Hello" --url https://example.com/webhook --debug
+Config pulled from : /home/user/.config/.whecho/config.toml
+Detected unsupported URL: example.com
+attempting to send to generic webhook with text field in json post body.
+Data: {'text': 'Hello'}
+Response: <Response [200]>
+```
+</CodeGroup>
+
+<Note>
+  Debug mode is invaluable when troubleshooting webhook issues or testing new integrations.
+</Note>
+
+## Real-World Examples
+
+### CI/CD Pipeline Integration
+
+```bash
+# .github/workflows/notify.yml excerpt
+- name: Notify on deployment
+  run: |
+    pip install whecho
+    whecho --init
+    whecho "Deployment to production completed - Build #${{ github.run_number }}"
+  env:
+    WHECHO_URL: ${{ secrets.WEBHOOK_URL }}
+```
+
+### System Monitoring
+
+```bash
+#!/bin/bash
+# monitor.sh - Check service health
+
+SERVICE="nginx"
+
+if systemctl is-active --quiet $SERVICE; then
+  echo "$SERVICE is running"
+else
+  whecho "⚠ Alert: $SERVICE is down on $(hostname)"
+  # Attempt restart
+  systemctl restart $SERVICE
+  sleep 5
+  if systemctl is-active --quiet $SERVICE; then
+    whecho "✓ $SERVICE restarted successfully"
+  else
+    whecho "✗ Critical: Failed to restart $SERVICE"
+  fi
+fi
+```
+
+### Test Suite Notifications
+
+```bash
+#!/bin/bash
+# run-tests.sh
+
+whecho "Running test suite..."
+
+pytest tests/ > test_output.log 2>&1
+RESULT=$?
+
+if [ $RESULT -eq 0 ]; then
+  PASSED=$(grep -c "PASSED" test_output.log)
+  whecho "✓ All tests passed ($PASSED tests)"
+else
+  FAILED=$(grep -c "FAILED" test_output.log)
+  whecho "✗ Test suite failed ($FAILED failures) - check logs"
+fi
+
+exit $RESULT
+```
+
+### Multi-Environment Deployments
+
+```bash
+#!/bin/bash
+# deploy-all.sh - Deploy to multiple environments
+
+ENVIRONMENTS=("staging" "production")
+
+for ENV in "${ENVIRONMENTS[@]}"; do
+  whecho "Starting deployment to $ENV..."
+  
+  if ./deploy.sh $ENV; then
+    whecho "✓ $ENV deployment successful"
+  else
+    whecho "✗ $ENV deployment failed - stopping pipeline"
+    exit 1
+  fi
+  
+  # Wait between deployments
+  sleep 30
+done
+
+whecho "🎉 All deployments completed successfully!"
+```
+
+## Best Practices
+
+<Tip>
+  **Keep messages concise**: Webhook messages work best when they're short and informative. Include key details like status, environment, and timestamps.
+</Tip>
+
+<Tip>
+  **Use exit codes wisely**: Combine whecho with proper exit codes so your scripts can be chained effectively:
+  
+  ```bash
+  if some_command; then
+    whecho "Success"
+    exit 0
+  else
+    whecho "Failed"
+    exit 1
+  fi
+  ```
+</Tip>
+
+<Tip>
+  **Test with debug mode first**: When setting up new notifications, always test with `--debug` to ensure the webhook is working correctly.
+</Tip>
+
+<Warning>
+  Avoid sending sensitive information (passwords, API keys, tokens) through webhooks. They may be logged or visible to others with access to the webhook channel.
+</Warning>
+
+## URL Override in Scripts
+
+You can send notifications to different webhooks within the same script:
+
+```bash
+#!/bin/bash
+DEV_WEBHOOK="https://discord.com/api/webhooks/dev/..."
+PROD_WEBHOOK="https://discord.com/api/webhooks/prod/..."
+
+# Notify dev channel
+whecho "Starting deployment" --url $DEV_WEBHOOK
+
+# Deploy...
+
+# Notify production channel
+whecho "Deployment complete" --url $PROD_WEBHOOK
+```
+
+<Info>
+  The `--url` flag overrides your default configuration without modifying your config file, perfect for multi-channel notifications.
+</Info>

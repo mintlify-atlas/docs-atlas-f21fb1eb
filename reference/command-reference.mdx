@@ -1,0 +1,294 @@
+---
+title: 'Command Reference'
+description: 'Complete CLI reference for whecho commands and options'
+---
+
+## Overview
+
+whecho is a command-line tool that sends webhook notifications. The basic syntax is:
+
+```bash
+whecho [OPTIONS] [MSG ...]
+```
+
+## Positional Arguments
+
+<ParamField path="MSG" type="string" optional>
+  The message to echo and send to the webhook. Can be provided as multiple arguments which will be joined with spaces.
+  
+  **Examples:**
+  ```bash
+  whecho "hello there"
+  whecho hello there  # equivalent to "hello there"
+  ```
+  
+  <Note>
+    You can provide the message either as the positional argument or using the `-m/--msg` flag. If both are provided, the flag takes precedence.
+  </Note>
+</ParamField>
+
+## Options
+
+### Version and Help
+
+<ParamField path="--version" type="flag">
+  Prints the version of whecho and exits.
+  
+  **Usage:**
+  ```bash
+  whecho --version
+  ```
+  
+  **Source:** whecho/whecho.py:17
+</ParamField>
+
+<ParamField path="-h, --help" type="flag">
+  Shows help message with all available options and exits.
+  
+  **Usage:**
+  ```bash
+  whecho --help
+  ```
+</ParamField>
+
+### Message Options
+
+<ParamField path="-m, --msg" type="string" optional>
+  Alternative way to specify the message to echo. This is equivalent to providing the message as a positional argument.
+  
+  **Usage:**
+  ```bash
+  whecho -m "hello there"
+  whecho --msg "Process completed"
+  ```
+  
+  <Note>
+    If both `-m/--msg` and positional arguments are provided, the `-m/--msg` flag takes precedence (see whecho/_utilities.py:45).
+  </Note>
+  
+  **Source:** whecho/whecho.py:18
+</ParamField>
+
+### Configuration
+
+<ParamField path="--init" type="flag">
+  Initializes whecho configuration or modifies existing config. This launches an interactive prompt to set up your default webhook URL and other settings.
+  
+  **Usage:**
+  ```bash
+  whecho --init
+  ```
+  
+  **Interactive Configuration:**
+  
+  When you run `--init`, you'll see a menu like:
+  ```
+  Current config:
+  [1] default_url: None
+  [2] user: yourname
+  [3] machine: your-hostname
+  
+  Please enter the number/name of the config option you would like to modify (empty or Q to exit):
+  ```
+  
+  **Configurable Options:**
+  - `default_url`: Your default webhook URL (required for basic usage)
+  - `user`: Username displayed in webhook messages (auto-detected)
+  - `machine`: Machine name (defaults to "auto" which uses hostname)
+  
+  **Non-modifiable Options:**
+  - `version`: whecho version (auto-set)
+  - `os`: Operating system (auto-detected)
+  
+  <Info>
+    Configuration is stored in platform-specific locations:
+    - **Linux:** `~/.config/.whecho/config.toml`
+    - **Windows:** `~\AppData\Roaming\.whecho\config.toml`
+    - **macOS:** `~/Library/Application Support/.whecho/config.toml`
+  </Info>
+  
+  **First-time Setup Example:**
+  ```bash
+  $ whecho --init
+  Current config:
+  [1] default_url: None
+  [2] user: craut
+  [3] machine: craut-spectre
+  
+  Please enter the number/name of the config option you would like to modify (empty or Q to exit): 1
+  Please enter the new value for default_url: https://discord.com/api/webhooks/...
+  Successfully modified default_url to https://discord.com/api/webhooks/...!
+  Current config:
+  [1] default_url: https://discord.com/api/webhooks/...
+  [2] user: craut
+  [3] machine: craut-spectre
+  
+  Please enter the number/name of the config option you would like to modify (empty or Q to exit): q
+  Successfully initialized whecho!
+  ```
+  
+  **Source:** whecho/whecho.py:20
+</ParamField>
+
+### URL Options
+
+<ParamField path="-u, --url" type="string" optional>
+  Specify a webhook URL for this message, overriding the default URL from config.
+  
+  **Usage:**
+  ```bash
+  whecho -u https://discord.com/api/webhooks/... "hello"
+  whecho --url https://hooks.slack.com/services/... "Process complete"
+  ```
+  
+  **Supported Webhook Services:**
+  
+  whecho auto-detects the webhook service and formats the payload accordingly:
+  
+  - **Discord** (discord.com, discordapp.com)
+    - Payload: `{"username": "user@machine", "content": "message"}`
+  - **Slack** (slack.com)
+    - Payload: `{"text": "message"}`
+  - **Microsoft Teams** (webhook.office.com)
+    - Payload: `{"text": "message"}`
+  - **Webex** (webexapis.com)
+    - Payload: `{"markdown": "message"}`
+  - **Generic webhooks**
+    - Payload: `{"text": "message"}`
+  
+  <Warning>
+    If you haven't run `whecho --init` to set a default URL, you must provide the `-u/--url` flag for every message, or you'll get an error.
+  </Warning>
+  
+  **Default:** `None` (loads from config if not provided)
+  
+  **Source:** whecho/whecho.py:21
+</ParamField>
+
+### Debugging
+
+<ParamField path="-d, --debug" type="flag">
+  Enable debug output to see detailed information about the request and response.
+  
+  **Usage:**
+  ```bash
+  whecho -d "test message"
+  whecho --debug "test message"
+  ```
+  
+  **Debug Output Includes:**
+  - Parsed arguments
+  - Loaded configuration
+  - Detected webhook service
+  - Request payload data
+  - HTTP response object
+  
+  **Example Output:**
+  ```
+  Arguments passed: Namespace(version=False, msg=None, message=['test', 'message'], init=False, url=None, debug=True)
+  Config pulled from : /home/user/.config/.whecho/config.toml
+  Config: {'default_url': 'https://discord.com/...', 'version': '1.0.0', 'user': 'yourname', 'os': 'Linux', 'machine': 'your-hostname'}
+  Message: test message
+  Detected discord.com in URL
+  Data: {'username': 'yourname@your-hostname', 'content': 'test message'}
+  Response: <Response [204]>
+  ```
+  
+  **Default:** `False`
+  
+  **Source:** whecho/whecho.py:22
+</ParamField>
+
+## Usage Examples
+
+### Basic Usage
+
+Send a simple message using the default webhook URL:
+
+```bash
+whecho "hello there"
+```
+
+### Multiple Arguments
+
+Multiple arguments are joined with spaces:
+
+```bash
+whecho hello there
+# Sends: "hello there"
+```
+
+### Using a Specific URL
+
+Override the default URL for a single message:
+
+```bash
+whecho -u https://discord.com/api/webhooks/... "Deployment complete"
+```
+
+### With Debug Output
+
+See detailed information about the request:
+
+```bash
+whecho -d "Testing webhook"
+```
+
+### Chaining Commands
+
+Send a notification when a long-running command completes:
+
+```bash
+make build && whecho "Build succeeded!" || whecho "Build failed!"
+```
+
+### Script Integration
+
+Notify when a script finishes:
+
+```bash
+./long_running_script.sh && whecho "Script completed"
+```
+
+## Error Conditions
+
+### No Configuration
+
+If whecho is not initialized and no URL is provided:
+
+```bash
+$ whecho "test"
+whecho is not initialized with a default url. Please run whecho --init to initialize whecho.
+```
+
+**Solution:** Run `whecho --init` to set up your default webhook URL.
+
+### No Message
+
+If no message is provided (and not using `--init` or `--version`):
+
+```bash
+$ whecho
+No message passed. Try whecho --help for more info.
+```
+
+**Solution:** Provide a message as a positional argument or use the `-m/--msg` flag.
+
+### HTTP Errors
+
+If the webhook request fails (invalid URL, network error, etc.), the HTTP error will be printed:
+
+```
+400 Client Error: Bad Request for url: ...
+```
+
+## Exit Codes
+
+- **0:** Success
+- **1:** Error (no configuration, no message, etc.)
+
+## See Also
+
+- [Python API Reference](/reference/python-api) - Use whecho from Python code
+- [Getting Started](/introduction) - Initial setup guide
+- [Configuration](/guides/configuration) - Detailed configuration options

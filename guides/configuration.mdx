@@ -1,0 +1,162 @@
+---
+title: Configuration
+description: Learn how to configure whecho with persistent settings for your webhook URLs and user preferences
+---
+
+## Overview
+
+Whecho uses a TOML configuration file to store your default webhook URL and system information. This allows you to send notifications without specifying the URL every time.
+
+## Initialization
+
+Before using whecho, you should initialize it to create a configuration file:
+
+<Steps>
+  <Step title="Run the init command">
+    ```bash
+    whecho --init
+    ```
+    
+    This will create a new configuration file and prompt you to set your preferences.
+  </Step>
+  
+  <Step title="Configure your default webhook URL">
+    When prompted, enter the number or name of the config option you want to modify:
+    
+    ```
+    Current config:
+    [1] default_url: None
+    [2] user: yourname
+    [3] machine: auto
+    
+    Please enter the number/name of the config option you would like to modify (empty or Q to exit):
+    ```
+    
+    Enter `1` or `default_url` to set your webhook URL.
+  </Step>
+  
+  <Step title="Save and exit">
+    Press Enter or type `Q` when you're done to save the configuration.
+  </Step>
+</Steps>
+
+## Configuration File Location
+
+The configuration file is stored in different locations depending on your operating system:
+
+<Tabs>
+  <Tab title="Linux">
+    ```bash
+    ~/.config/.whecho/config.toml
+    ```
+  </Tab>
+  
+  <Tab title="macOS">
+    ```bash
+    ~/Library/Application Support/.whecho/config.toml
+    ```
+  </Tab>
+  
+  <Tab title="Windows">
+    ```bash
+    ~\AppData\Roaming\.whecho\config.toml
+    ```
+  </Tab>
+</Tabs>
+
+## Configuration Options
+
+Your config file contains the following settings:
+
+### Modifiable Settings
+
+These settings can be changed using `whecho --init`:
+
+<ParamField path="default_url" type="string" default="None">
+  The default webhook URL to send notifications to. This is the most important setting to configure.
+</ParamField>
+
+<ParamField path="user" type="string" default="current username">
+  The username to include in webhook messages. Automatically detected from your system.
+</ParamField>
+
+<ParamField path="machine" type="string" default="auto">
+  The machine hostname to include in messages. Set to `auto` to automatically detect the hostname, or specify a custom name.
+</ParamField>
+
+### Auto-Generated Settings
+
+These settings are automatically managed and cannot be modified:
+
+<ParamField path="version" type="string">
+  The version of whecho currently installed. Automatically set and cannot be changed.
+</ParamField>
+
+<ParamField path="os" type="string">
+  The operating system type (Linux, Darwin, Windows). Automatically detected and cannot be changed.
+</ParamField>
+
+## Configuration File Structure
+
+Here's an example of what your `config.toml` file looks like:
+
+```toml
+default_url = "https://discord.com/api/webhooks/123456789/abcdefg"
+version = "0.0.6"
+user = "john"
+os = "Linux"
+machine = "my-laptop"
+```
+
+## Updating Configuration
+
+To modify your configuration after initial setup, simply run `whecho --init` again:
+
+```bash
+whecho --init
+```
+
+This will display your current settings and allow you to change any modifiable options.
+
+<Warning>
+  If your config file becomes corrupted or is missing required fields, whecho will automatically load default values and warn you to run `whecho --init` to fix the configuration.
+</Warning>
+
+## One-Time URL Override
+
+You can override the default URL for a single message without changing your configuration:
+
+```bash
+whecho "Emergency alert" --url https://your-webhook-url.com
+```
+
+This is useful when you need to send a message to a different webhook temporarily.
+
+<Tip>
+  Store different webhook URLs in environment variables or shell aliases for quick access:
+  
+  ```bash
+  export DISCORD_WEBHOOK="https://discord.com/api/webhooks/..."
+  whecho "Hello Discord" --url $DISCORD_WEBHOOK
+  ```
+</Tip>
+
+## Troubleshooting
+
+### No URL Configured
+
+If you see an error like "No URL passed. Did you run whecho --init?", it means you haven't set a default webhook URL. Run `whecho --init` and configure the `default_url` setting.
+
+### Config Corruption
+
+If you see warnings about a corrupted config, run:
+
+```bash
+whecho --init
+```
+
+This will repair your configuration file with any missing fields.
+
+### Hostname Detection
+
+If `machine` is set to `auto`, whecho will automatically detect your hostname using `socket.gethostname()`. If you prefer a custom name, set it explicitly during initialization.

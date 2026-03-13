@@ -1,0 +1,72 @@
+---
+title: Installation
+description: Install whecho and set up your environment
+---
+
+# Installation
+
+whecho is distributed as a Python package and can be installed using pip. Follow these steps to get whecho running on your system.
+
+## System Requirements
+
+<Note>
+whecho requires **Python 3.6 or higher**. Make sure you have Python installed before proceeding.
+</Note>
+
+You can verify your Python version by running:
+
+```bash
+python --version
+```
+
+## Install with pip
+
+<Steps>
+  <Step title="Install whecho">
+    Install whecho using pip:
+
+    ```bash
+    pip install whecho
+    ```
+
+    This will install whecho and its dependencies:
+    - `requests` (>=2.25.1) – For making HTTP requests to webhook URLs
+    - `toml` (>=0.6.0) – For configuration file management
+  </Step>
+
+  <Step title="Verify installation">
+    Verify that whecho is installed correctly:
+
+    ```bash
+    whecho --version
+    ```
+
+    This should display the installed version of whecho.
+  </Step>
+</Steps>
+
+## Platform Support
+
+whecho works across multiple operating systems:
+
+- **Linux** – Configuration stored in `~/.config/.whecho/config.toml`
+- **Windows** – Configuration stored in `~\AppData\Roaming\.whecho\config.toml`
+- **macOS** – Configuration stored in `~/Library/Application Support/.whecho/config.toml`
+
+<Info>
+The configuration file location is automatically determined based on your operating system. You don't need to manually create these directories – whecho handles this during initialization.
+</Info>
+
+## Dependencies
+
+whecho has minimal dependencies to keep it lightweight:
+
+| Package | Version | Purpose |
+|---------|---------|----------|
+| requests | &gt;=2.25.1 | HTTP requests to webhook URLs |
+| toml | &gt;=0.6.0 | Configuration file parsing |
+| importlib-metadata | &gt;=1.0 | Metadata support for Python &lt;3.8 |
+
+## Next Steps
+
+After installation, you'll need to configure whecho with your webhook URL. Head over to the [Quickstart guide](/quickstart) to send your first notification.

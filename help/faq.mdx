@@ -1,0 +1,507 @@
+---
+title: Frequently Asked Questions
+description: Common questions about whecho
+icon: messages-question
+---
+
+Find answers to the most frequently asked questions about whecho.
+
+## General Questions
+
+<AccordionGroup>
+  <Accordion title="What webhooks are supported?">
+    whecho supports the following webhook platforms out of the box:
+
+    - **Discord** (`discord.com`, `discordapp.com`)
+    - **Slack** (`slack.com`)
+    - **Microsoft Teams** (`webhook.office.com`)
+    - **Webex** (`webexapis.com`)
+
+    whecho also supports **generic webhooks** that accept a JSON payload with a `text` field. If your webhook service isn't explicitly listed above, whecho will automatically attempt to send messages using the generic format.
+
+    <Info>
+    The platform is automatically detected based on the webhook URL. Use `--debug` to see which platform whecho detected.
+    </Info>
+
+    **Data formats by platform:**
+    - Discord: `{"username": "user@machine", "content": "message"}`
+    - Slack/Teams: `{"text": "message"}`
+    - Webex: `{"markdown": "message"}`
+    - Generic: `{"text": "message"}`
+  </Accordion>
+
+  <Accordion title="Where is the config file stored?">
+    The configuration file location depends on your operating system:
+
+    | OS | Config File Path |
+    |---|---|
+    | **Linux** | `~/.config/.whecho/config.toml` |
+    | **macOS** | `~/Library/Application Support/.whecho/config.toml` |
+    | **Windows** | `~\AppData\Roaming\.whecho\config.toml` |
+
+    The config file is automatically created when you run `whecho --init`.
+
+    **To view your config location:**
+    ```bash
+    whecho --debug -m "test"
+    ```
+    Look for the line: `Config pulled from: /path/to/config.toml`
+
+    **Config file format:**
+    ```toml
+    default_url = "https://your-webhook-url"
+    version = "1.0.0"
+    user = "username"
+    os = "Linux"
+    machine = "auto"
+    ```
+
+    <Tip>
+    You can manually edit the config file or use `whecho --init` to modify settings interactively.
+    </Tip>
+  </Accordion>
+
+  <Accordion title="Can I use multiple webhook URLs?">
+    Yes! You have several options:
+
+    **Option 1: Override with `-u` flag (recommended)**
+    ```bash
+    # Send to Discord
+    whecho -u "https://discord.com/api/webhooks/..." -m "Discord message"
+
+    # Send to Slack
+    whecho -u "https://hooks.slack.com/services/..." -m "Slack message"
+    ```
+
+    **Option 2: Change default URL**
+    ```bash
+    whecho --init
+    # Select default_url and enter new URL
+    ```
+
+    **Option 3: Environment variables (for scripts)**
+    ```bash
+    DISCORD_URL="https://discord.com/api/webhooks/..."
+    SLACK_URL="https://hooks.slack.com/services/..."
+
+    whecho -u "$DISCORD_URL" -m "Message 1"
+    whecho -u "$SLACK_URL" -m "Message 2"
+    ```
+
+    **Option 4: Python API for programmatic control**
+    ```python
+    from whecho.whecho import whecho_simple
+
+    discord_url = "https://discord.com/api/webhooks/..."
+    slack_url = "https://hooks.slack.com/services/..."
+
+    whecho_simple("Discord message", discord_url)
+    whecho_simple("Slack message", slack_url)
+    ```
+
+    <Info>
+    The `-u` flag always takes precedence over the default URL in your config file.
+    </Info>
+  </Accordion>
+
+  <Accordion title="How do I use whecho in Python?">
+    whecho can be used as a Python library:
+
+    **Basic usage:**
+    ```python
+    from whecho.whecho import whecho_simple
+
+    # Send a message
+    whecho_simple("Your message", "https://your-webhook-url")
+    ```
+
+    **With debug mode:**
+    ```python
+    response = whecho_simple("Your message", "https://your-webhook-url", debug=True)
+    print(response.status_code)  # 200, 204, etc.
+    ```
+
+    **With custom config:**
+    ```python
+    from whecho._send_message import post_simple
+
+    conf = {
+        'user': 'custom-user',
+        'machine': 'custom-machine',
+        'default_url': 'https://your-webhook-url'
+    }
+
+    post_simple("Your message", "https://your-webhook-url", conf=conf)
+    ```
+
+    <Card title="Python Integration Guide" icon="python" href="/guides/python-integration">
+      See the complete Python integration guide for more examples and advanced usage.
+    </Card>
+  </Accordion>
+
+  <Accordion title="Does whecho work on Windows, Mac, and Linux?">
+    **Yes!** whecho is fully cross-platform and works on:
+
+    - **Linux** (all distributions)
+    - **macOS** (all versions)
+    - **Windows** (all versions)
+
+    The tool automatically detects your operating system and adjusts:
+    - Config file locations
+    - Path separators
+    - Username detection (with fallbacks for Windows)
+
+    **Platform detection:**
+    whecho uses Python's `platform.system()` to detect your OS and automatically applies the correct paths and behaviors.
+
+    **Known platform-specific notes:**
+    - **Windows:** `getpass.getuser()` may fail in some environments (automatically handled)
+    - **macOS:** Config stored in `~/Library/Application Support/`
+    - **Linux:** Config stored in `~/.config/` following XDG standards
+
+    <Info>
+    If you encounter platform-specific issues, see the [troubleshooting guide](/help/troubleshooting) or report them on GitHub.
+    </Info>
+  </Accordion>
+
+  <Accordion title="How do I get a webhook URL?">
+    Each platform has different steps for creating webhook URLs:
+
+    **Discord:**
+    1. Open Server Settings → Integrations
+    2. Click "Create Webhook" or "View Webhooks"
+    3. Configure name and channel
+    4. Click "Copy Webhook URL"
+    
+    Format: `https://discord.com/api/webhooks/{id}/{token}`
+
+    [Discord Webhooks Documentation](https://support.discord.com/hc/en-us/articles/228383668-Intro-to-Webhooks)
+
+    **Slack:**
+    1. Go to [Slack API Apps](https://api.slack.com/apps)
+    2. Create a new app or select existing
+    3. Enable "Incoming Webhooks"
+    4. Add new webhook to workspace
+    5. Copy the webhook URL
+
+    Format: `https://hooks.slack.com/services/T00000000/B00000000/XXXXXXXXXXXXXXXXXXXX`
+
+    [Slack Webhooks Documentation](https://api.slack.com/messaging/webhooks)
+
+    **Microsoft Teams:**
+    1. Open Teams channel → More options (⋯)
+    2. Select "Connectors"
+    3. Search for "Incoming Webhook"
+    4. Click "Configure"
+    5. Name your webhook and copy URL
+
+    Format: `https://outlook.office.com/webhook/...`
+
+    [Teams Webhooks Documentation](https://docs.microsoft.com/en-us/microsoftteams/platform/webhooks-and-connectors/how-to/add-incoming-webhook)
+
+    **Webex:**
+    1. Visit [Webex for Developers](https://developer.webex.com/)
+    2. Create incoming webhook integration
+    3. Select target space
+    4. Copy the webhook URL
+
+    Format: `https://webexapis.com/v1/webhooks/incoming/...`
+
+    [Webex Webhooks Documentation](https://developer.webex.com/docs/webhooks)
+
+    <Warning>
+    Keep your webhook URLs private! Anyone with the URL can send messages to your channel.
+    </Warning>
+  </Accordion>
+
+  <Accordion title="Can I customize the username or message format?">
+    The customization options depend on the webhook platform:
+
+    **Discord:**
+    - **Username:** Automatically set to `{user}@{machine}` based on your config
+    - **Customize:** Modify your config file or pass custom config in Python
+    ```python
+    conf = {'user': 'CustomBot', 'machine': 'Production'}
+    post_simple("message", url, conf=conf)
+    ```
+
+    **Slack/Teams:**
+    - Username and formatting are controlled by the webhook configuration on the platform
+    - whecho sends plain text in the `text` field
+    - Customize display name in webhook settings on Slack/Teams
+
+    **Webex:**
+    - Supports **markdown formatting**
+    - Username controlled by webhook settings
+    ```bash
+    whecho -m "**Bold** *italic* [link](https://example.com)"
+    ```
+
+    **Per-platform data formats:**
+
+    The format sent by whecho varies by platform (see `/home/daytona/workspace/source/whecho/_send_message.py:29-73`):
+
+    | Platform | Format |
+    |---|---|
+    | Discord | `{"username": "user@machine", "content": "message"}` |
+    | Slack | `{"text": "message"}` |
+    | Teams | `{"text": "message"}` |
+    | Webex | `{"markdown": "message"}` |
+    | Generic | `{"text": "message"}` |
+
+    <Info>
+    Use `--debug` to see the exact JSON payload being sent to your webhook.
+    </Info>
+  </Accordion>
+
+  <Accordion title="Is whecho secure? How is my webhook URL stored?">
+    **Security considerations:**
+
+    **1. Webhook URL Storage:**
+    - Stored in a local TOML file on your machine
+    - File location is OS-specific (see "Where is the config file stored?" above)
+    - **Not encrypted** - protected by your OS file permissions
+    - Never transmitted anywhere except to your webhook endpoint
+
+    **2. Best Practices:**
+    - Keep your config file permissions restrictive
+    ```bash
+    # Linux/macOS
+    chmod 600 ~/.config/.whecho/config.toml
+    ```
+    - Never commit your config file to version control
+    - Use environment variables for CI/CD instead of config files
+    - Regenerate webhook URLs if accidentally exposed
+
+    **3. Network Security:**
+    - All webhook requests use HTTPS
+    - whecho uses Python's `requests` library (trusted and well-maintained)
+    - No data is sent to third parties (only to your webhook endpoint)
+
+    **4. For Sensitive Environments:**
+    - Use `-u` flag instead of storing URLs in config
+    - Store webhook URLs in secure secret management systems
+    - Pass URLs via environment variables
+
+    ```bash
+    # Secure approach for CI/CD
+    whecho -u "$SECRET_WEBHOOK_URL" -m "Deployment complete"
+    ```
+
+    <Warning>
+    Webhook URLs are like passwords - anyone with the URL can send messages. Protect them accordingly.
+    </Warning>
+  </Accordion>
+
+  <Accordion title="How do I update whecho?">
+    Update whecho using pip:
+
+    ```bash
+    pip install --upgrade whecho
+    ```
+
+    **Check current version:**
+    ```bash
+    whecho --version
+    ```
+
+    **Verify update:**
+    ```bash
+    pip show whecho
+    ```
+
+    **Update in a virtual environment:**
+    ```bash
+    # Activate your venv first
+    source venv/bin/activate  # Linux/macOS
+    venv\Scripts\activate     # Windows
+
+    # Then update
+    pip install --upgrade whecho
+    ```
+
+    **After updating:**
+    - Your config file is preserved
+    - Run `whecho --init` if you encounter config issues
+    - Check the [changelog](https://github.com/tedivm/whecho/releases) for breaking changes
+
+    <Info>
+    Your configuration file is not affected by updates and will be preserved.
+    </Info>
+  </Accordion>
+</AccordionGroup>
+
+## Usage Questions
+
+<AccordionGroup>
+  <Accordion title="What's the difference between -m and positional arguments?">
+    Both methods work, with subtle differences:
+
+    **Using `-m` flag:**
+    ```bash
+    whecho -m "Your complete message here"
+    ```
+    - More explicit
+    - Recommended for scripts
+    - Easier to read in complex commands
+
+    **Using positional arguments:**
+    ```bash
+    whecho Your message here
+    ```
+    - More concise for simple messages
+    - All words after flags are joined with spaces
+    - Convenient for quick messages
+
+    Both produce the same result. Choose based on preference!
+
+    <Tip>
+    For multi-line messages or messages with special characters, use `-m` with quotes.
+    </Tip>
+  </Accordion>
+
+  <Accordion title="Can I send messages from scripts and automation?">
+    **Absolutely!** whecho is designed for automation.
+
+    **Bash script example:**
+    ```bash
+    #!/bin/bash
+    # Notify when backup completes
+    ./backup.sh
+    if [ $? -eq 0 ]; then
+        whecho -m "✅ Backup completed successfully"
+    else
+        whecho -m "❌ Backup failed"
+    fi
+    ```
+
+    **Python script example:**
+    ```python
+    from whecho.whecho import whecho_simple
+    import sys
+
+    try:
+        # Your code here
+        result = some_long_running_task()
+        whecho_simple(f"Task completed: {result}", webhook_url)
+    except Exception as e:
+        whecho_simple(f"Task failed: {e}", webhook_url)
+        sys.exit(1)
+    ```
+
+    **Cron job example:**
+    ```bash
+    # Send daily report at 9 AM
+    0 9 * * * /usr/local/bin/whecho -m "Daily report ready" && /path/to/report.sh
+    ```
+
+    **CI/CD example (GitHub Actions):**
+    ```yaml
+    - name: Notify deployment
+      run: |
+        pip install whecho
+        whecho -u "${{ secrets.WEBHOOK_URL }}" -m "Deployment to production complete"
+    ```
+
+    <Card title="Python Integration Guide" icon="code" href="/guides/python-integration">
+      See more examples of using whecho in Python applications.
+    </Card>
+  </Accordion>
+
+  <Accordion title="What happens if the webhook fails?">
+    When a webhook request fails:
+
+    **1. Error Handling:**
+    - whecho catches `requests.exceptions.HTTPError`
+    - Error is printed to stdout
+    - Command exits (non-zero exit code for CLI)
+
+    **2. Common Failure Scenarios:**
+    - **Network issues:** Connection timeout, no internet
+    - **Invalid URL:** 404 Not Found
+    - **Expired webhook:** 401 Unauthorized
+    - **Rate limiting:** 429 Too Many Requests
+    - **Platform issues:** 500 Server Error
+
+    **3. Debugging Failed Requests:**
+    ```bash
+    whecho --debug -m "test message"
+    ```
+    This shows:
+    - Full HTTP response
+    - Status code
+    - Error details
+
+    **4. Handling Failures in Scripts:**
+    ```bash
+    #!/bin/bash
+    whecho -m "test" || echo "Notification failed, continuing..."
+    ```
+
+    ```python
+    from whecho.whecho import whecho_simple
+    import requests
+
+    try:
+        whecho_simple("message", url)
+    except requests.exceptions.RequestException as e:
+        print(f"Failed to send notification: {e}")
+        # Continue with other tasks
+    ```
+
+    <Info>
+    See the [troubleshooting guide](/help/troubleshooting) for specific HTTP error solutions.
+    </Info>
+  </Accordion>
+
+  <Accordion title="Can I send messages with special characters or emojis?">
+    **Yes!** whecho fully supports Unicode, including emojis and special characters.
+
+    **Examples:**
+    ```bash
+    # Emojis
+    whecho -m "✅ Build passed!"
+    whecho -m "🚀 Deployment started"
+    whecho -m "❌ Tests failed"
+
+    # Special characters
+    whecho -m "Status: 100% complete"
+    whecho -m "Temperature: 23°C"
+
+    # Multiple languages
+    whecho -m "こんにちは世界"  # Japanese
+    whecho -m "Привет мир"      # Russian
+    ```
+
+    **Important notes:**
+    - Use quotes around messages with special characters
+    - Your terminal must support Unicode display
+    - The webhook platform must support the characters (most do)
+
+    **For Webex (markdown support):**
+    ```bash
+    whecho -m "**Bold** *italic* `code` [link](https://example.com)"
+    ```
+
+    <Tip>
+    Test emoji support with: `whecho -m "Test: 👍 ✅ 🚀 ❌"`
+    </Tip>
+  </Accordion>
+</AccordionGroup>
+
+## Still Have Questions?
+
+<CardGroup cols={2}>
+  <Card title="Troubleshooting" icon="wrench" href="/help/troubleshooting">
+    Find solutions to common issues and errors
+  </Card>
+  <Card title="Quickstart" icon="rocket" href="/quickstart">
+    Get started with whecho in 5 minutes
+  </Card>
+  <Card title="Python Integration" icon="python" href="/guides/python-integration">
+    Learn how to use whecho in Python applications
+  </Card>
+  <Card title="GitHub Repository" icon="github" href="https://github.com/tedivm/whecho">
+    Report bugs, request features, or contribute
+  </Card>
+</CardGroup>

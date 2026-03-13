@@ -1,0 +1,444 @@
+---
+title: Supported Platforms
+description: Learn which webhook platforms whecho supports and how to configure them
+---
+
+## Overview
+
+Whecho automatically detects and formats messages for popular webhook platforms. Each platform has its own data format requirements, which whecho handles automatically based on the webhook URL.
+
+## Platform Support
+
+Whecho currently supports the following webhook platforms:
+
+<CardGroup cols={2}>
+  <Card title="Discord" icon="discord" href="#discord">
+    Full support with username and content formatting
+  </Card>
+  <Card title="Slack" icon="slack" href="#slack">
+    Simple text message support
+  </Card>
+  <Card title="Microsoft Teams" icon="microsoft" href="#microsoft-teams">
+    Basic text message support
+  </Card>
+  <Card title="Webex" icon="webex" href="#webex">
+    Markdown-formatted messages
+  </Card>
+</CardGroup>
+
+<Info>
+  Whecho also supports **generic webhooks** that accept JSON payloads with a `text` field.
+</Info>
+
+## Platform Details
+
+<Tabs>
+  <Tab title="Discord">
+    ### Discord Webhooks
+    
+    **Detection:** URLs containing `discord.com` or `discordapp.com`
+    
+    **Data Format:**
+    ```json
+    {
+      "username": "user@hostname",
+      "content": "Your message here"
+    }
+    ```
+    
+    **Features:**
+    - Includes your username and machine hostname
+    - Supports rich text and emojis
+    - Fast delivery
+    
+    #### Getting Your Discord Webhook URL
+    
+    <Steps>
+      <Step title="Open Server Settings">
+        Navigate to your Discord server and click the server name, then select **Server Settings**.
+      </Step>
+      
+      <Step title="Create Webhook">
+        Go to **Integrations** → **Webhooks** → **New Webhook**.
+      </Step>
+      
+      <Step title="Configure Webhook">
+        - Name your webhook (e.g., "Whecho Notifications")
+        - Select the channel where messages should appear
+        - Click **Copy Webhook URL**
+      </Step>
+      
+      <Step title="Configure Whecho">
+        ```bash
+        whecho --init
+        # Paste your Discord webhook URL when prompted
+        ```
+      </Step>
+    </Steps>
+    
+    #### Example
+    
+    ```bash
+    whecho "Build completed successfully!"
+    ```
+    
+    This sends a message to Discord showing:
+    ```
+    john@laptop
+    Build completed successfully!
+    ```
+    
+    <Tip>
+      Discord webhooks support emojis! Use them to make your notifications more visual:
+      ```bash
+      whecho "✓ Tests passed" || whecho "✗ Tests failed"
+      ```
+    </Tip>
+    
+    **Learn more:** [Discord Webhook Documentation](https://discord.com/developers/docs/resources/webhook)
+  </Tab>
+  
+  <Tab title="Slack">
+    ### Slack Webhooks
+    
+    **Detection:** URLs containing `slack.com`
+    
+    **Data Format:**
+    ```json
+    {
+      "text": "Your message here"
+    }
+    ```
+    
+    **Features:**
+    - Simple text messages
+    - Integrates with Slack channels
+    - Supports Slack's text formatting
+    
+    #### Getting Your Slack Webhook URL
+    
+    <Steps>
+      <Step title="Create Slack App">
+        Go to [Slack API](https://api.slack.com/apps) and click **Create New App** → **From scratch**.
+      </Step>
+      
+      <Step title="Enable Incoming Webhooks">
+        - Select **Incoming Webhooks** from the sidebar
+        - Toggle **Activate Incoming Webhooks** to **On**
+      </Step>
+      
+      <Step title="Add Webhook to Workspace">
+        - Click **Add New Webhook to Workspace**
+        - Select the channel for notifications
+        - Click **Allow**
+      </Step>
+      
+      <Step title="Copy Webhook URL">
+        Copy the webhook URL that starts with `https://hooks.slack.com/services/...`
+      </Step>
+      
+      <Step title="Configure Whecho">
+        ```bash
+        whecho --init
+        # Paste your Slack webhook URL when prompted
+        ```
+      </Step>
+    </Steps>
+    
+    #### Example
+    
+    ```bash
+    whecho "Deployment to production completed"
+    ```
+    
+    <Note>
+      Slack webhooks send messages with a simple text format. For more advanced formatting, you would need to use Slack's Block Kit (not currently supported by whecho).
+    </Note>
+    
+    **Learn more:** [Slack Incoming Webhooks](https://api.slack.com/messaging/webhooks)
+  </Tab>
+  
+  <Tab title="Teams">
+    ### Microsoft Teams Webhooks
+    
+    **Detection:** URLs containing `webhook.office.com`
+    
+    **Data Format:**
+    ```json
+    {
+      "text": "Your message here"
+    }
+    ```
+    
+    **Features:**
+    - Basic text message support
+    - Integrates with Teams channels
+    - Supports simple text formatting
+    
+    #### Getting Your Teams Webhook URL
+    
+    <Steps>
+      <Step title="Open Teams Channel">
+        Navigate to the Microsoft Teams channel where you want to receive notifications.
+      </Step>
+      
+      <Step title="Add Incoming Webhook Connector">
+        - Click the **···** (more options) next to the channel name
+        - Select **Connectors** or **Workflows** (depending on your Teams version)
+        - Search for **Incoming Webhook**
+      </Step>
+      
+      <Step title="Configure Webhook">
+        - Name your webhook (e.g., "Build Notifications")
+        - Optionally upload an image
+        - Click **Create**
+      </Step>
+      
+      <Step title="Copy URL">
+        Copy the webhook URL provided (starts with `https://webhook.office.com/...`)
+      </Step>
+      
+      <Step title="Configure Whecho">
+        ```bash
+        whecho --init
+        # Paste your Teams webhook URL when prompted
+        ```
+      </Step>
+    </Steps>
+    
+    #### Example
+    
+    ```bash
+    whecho "Daily backup completed successfully"
+    ```
+    
+    **Learn more:** [Microsoft Teams Webhooks](https://learn.microsoft.com/en-us/microsoftteams/platform/webhooks-and-connectors/how-to/add-incoming-webhook)
+  </Tab>
+  
+  <Tab title="Webex">
+    ### Cisco Webex Webhooks
+    
+    **Detection:** URLs containing `webexapis.com`
+    
+    **Data Format:**
+    ```json
+    {
+      "markdown": "Your message here"
+    }
+    ```
+    
+    **Features:**
+    - Markdown formatting support
+    - Integrates with Webex spaces
+    - Rich text capabilities
+    
+    #### Getting Your Webex Webhook URL
+    
+    <Steps>
+      <Step title="Create Webex Bot">
+        Go to [Webex Developer Portal](https://developer.webex.com/) and create a bot or use an existing one.
+      </Step>
+      
+      <Step title="Create Incoming Webhook">
+        - Navigate to the Webex space where you want notifications
+        - Configure an incoming webhook for that space
+      </Step>
+      
+      <Step title="Copy Webhook URL">
+        Copy the webhook URL provided by Webex (contains `webexapis.com`)
+      </Step>
+      
+      <Step title="Configure Whecho">
+        ```bash
+        whecho --init
+        # Paste your Webex webhook URL when prompted
+        ```
+      </Step>
+    </Steps>
+    
+    #### Example
+    
+    ```bash
+    whecho "**Important:** Server maintenance completed"
+    ```
+    
+    <Tip>
+      Since Webex supports markdown, you can use formatting in your messages:
+      - `**bold**` for **bold text**
+      - `*italic*` for *italic text*
+      - `[link](url)` for links
+    </Tip>
+    
+    **Learn more:** [Webex Webhooks Documentation](https://developer.webex.com/docs/api/guides/webhooks)
+  </Tab>
+  
+  <Tab title="Generic">
+    ### Generic Webhooks
+    
+    **Detection:** Any URL not matching other platforms
+    
+    **Data Format:**
+    ```json
+    {
+      "text": "Your message here"
+    }
+    ```
+    
+    **Features:**
+    - Simple JSON payload with `text` field
+    - Works with custom webhook endpoints
+    - Fallback for unsupported platforms
+    
+    #### Using Generic Webhooks
+    
+    If your webhook service accepts a JSON POST request with a `text` field, you can use whecho directly:
+    
+    ```bash
+    whecho "Hello World" --url https://your-webhook-service.com/hook
+    ```
+    
+    Whecho will send:
+    ```json
+    {
+      "text": "Hello World"
+    }
+    ```
+    
+    #### Debug Generic Webhooks
+    
+    Use debug mode to see what whecho is sending:
+    
+    ```bash
+    whecho "Test" --url https://example.com/webhook --debug
+    ```
+    
+    Output:
+    ```
+    Detected unsupported URL: example.com
+    attempting to send to generic webhook with text field in json post body.
+    Data: {'text': 'Test'}
+    Response: <Response [200]>
+    ```
+    
+    <Info>
+      Many webhook services support the generic `{"text": "message"}` format, including custom endpoints, Zapier, IFTTT, and more.
+    </Info>
+  </Tab>
+</Tabs>
+
+## Platform Detection
+
+Whecho automatically detects the webhook platform by analyzing the URL:
+
+| URL Contains | Platform | Data Format |
+|--------------|----------|-------------|
+| `discord.com` or `discordapp.com` | Discord | `{username, content}` |
+| `slack.com` | Slack | `{text}` |
+| `webhook.office.com` | Microsoft Teams | `{text}` |
+| `webexapis.com` | Webex | `{markdown}` |
+| *Other* | Generic | `{text}` |
+
+You can see the detection in action using debug mode:
+
+```bash
+whecho "Test" --debug
+```
+
+## Data Format Comparison
+
+<Accordion title="Discord Format">
+  **Sent Data:**
+  ```json
+  {
+    "username": "john@laptop",
+    "content": "Build completed"
+  }
+  ```
+  
+  **Source:** whecho/_send_message.py:49
+  
+  The username combines your system user and hostname from the configuration.
+</Accordion>
+
+<Accordion title="Slack, Teams, Generic Format">
+  **Sent Data:**
+  ```json
+  {
+    "text": "Build completed"
+  }
+  ```
+  
+  **Source:** 
+  - Slack: whecho/_send_message.py:55
+  - Teams: whecho/_send_message.py:60
+  - Generic: whecho/_send_message.py:70
+  
+  Simple text-only format without additional metadata.
+</Accordion>
+
+<Accordion title="Webex Format">
+  **Sent Data:**
+  ```json
+  {
+    "markdown": "Build completed"
+  }
+  ```
+  
+  **Source:** whecho/_send_message.py:65
+  
+  Uses markdown field to support rich text formatting.
+</Accordion>
+
+## Testing Platform Support
+
+To test if your webhook is working with whecho:
+
+<Steps>
+  <Step title="Use debug mode">
+    ```bash
+    whecho "Test message" --url YOUR_WEBHOOK_URL --debug
+    ```
+  </Step>
+  
+  <Step title="Check platform detection">
+    The debug output will show which platform was detected:
+    ```
+    Detected discord.com in URL
+    ```
+    or
+    ```
+    Detected unsupported URL: example.com
+    attempting to send to generic webhook with text field in json post body.
+    ```
+  </Step>
+  
+  <Step title="Verify the response">
+    A successful response should show:
+    ```
+    Response: <Response [200]>
+    ```
+    or
+    ```
+    Response: <Response [204]>
+    ```
+  </Step>
+</Steps>
+
+<Warning>
+  If you see an HTTP error (4xx or 5xx), check:
+  - Your webhook URL is correct and not expired
+  - The webhook has permission to post to the channel
+  - Your network can reach the webhook endpoint
+</Warning>
+
+## Extending Support
+
+If you need support for a different webhook platform, you can:
+
+1. **Use the generic format** if your platform accepts `{"text": "message"}`
+2. **Submit a feature request** at the whecho GitHub repository
+3. **Contribute a PR** adding support for your platform in `_send_message.py`
+
+<Tip>
+  Most webhook platforms support either the generic text format or can be configured to accept it. Try the generic format first before requesting custom support.
+</Tip>

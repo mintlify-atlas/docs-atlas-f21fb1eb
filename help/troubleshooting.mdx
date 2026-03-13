@@ -1,0 +1,346 @@
+---
+title: Troubleshooting
+description: Common issues and solutions for whecho
+icon: wrench
+---
+
+This guide covers common issues you might encounter when using whecho and how to resolve them.
+
+<Tip>
+Use the `--debug` flag with any whecho command to see detailed diagnostic information that can help identify issues.
+
+```bash
+whecho --debug -m "test message"
+```
+</Tip>
+
+## Common Issues
+
+<AccordionGroup>
+  <Accordion title="Error: 'whecho is not initialized'">
+    **Problem:** You see the error message:
+    ```
+    whecho is not initialized with a default url. Please run whecho --init to initialize whecho.
+    ```
+
+    **Solution:** Run the initialization command to set up your default webhook URL:
+    ```bash
+    whecho --init
+    ```
+
+    This creates a configuration file and prompts you to enter your default webhook URL. You can also use the `-u` flag to specify a URL without initialization:
+    ```bash
+    whecho -u "https://your-webhook-url" -m "your message"
+    ```
+
+    <Info>
+    See the [quickstart guide](/quickstart) for detailed initialization steps.
+    </Info>
+  </Accordion>
+
+  <Accordion title="Error: 'No URL passed'">
+    **Problem:** You see the error:
+    ```python
+    ValueError: No URL passed. Did you run whecho --init?
+    ```
+
+    **Causes:**
+    - You haven't initialized whecho with a default URL
+    - Your config file exists but `default_url` is not set
+    - You're calling the Python API without providing a URL
+
+    **Solutions:**
+
+    For CLI usage:
+    ```bash
+    # Option 1: Initialize with a default URL
+    whecho --init
+
+    # Option 2: Provide URL with -u flag
+    whecho -u "https://your-webhook-url" -m "message"
+    ```
+
+    For Python usage:
+    ```python
+    from whecho.whecho import whecho_simple
+
+    # Always provide the URL parameter
+    whecho_simple("your message", "https://your-webhook-url")
+    ```
+  </Accordion>
+
+  <Accordion title="Error: 'No message passed'">
+    **Problem:** You see the error:
+    ```python
+    ValueError: No message passed. Try whecho --help for more info.
+    ```
+
+    **Cause:** You ran whecho without providing a message to send.
+
+    **Solution:** Provide a message using either method:
+    ```bash
+    # Method 1: Using -m flag
+    whecho -m "Your message here"
+
+    # Method 2: Using positional arguments
+    whecho Your message here
+
+    # For Python API
+    whecho_simple("Your message here", url)
+    ```
+
+    <Warning>
+    An empty string is not a valid message. Make sure your message contains actual content.
+    </Warning>
+  </Accordion>
+
+  <Accordion title="HTTP Errors from Webhook Endpoints">
+    **Problem:** You receive HTTP error responses like 400, 401, 404, or 500.
+
+    **Common HTTP Errors:**
+
+    - **400 Bad Request:** The webhook payload format is incorrect
+    - **401 Unauthorized:** The webhook URL is invalid or expired
+    - **404 Not Found:** The webhook URL doesn't exist
+    - **429 Too Many Requests:** You're hitting rate limits
+    - **500 Server Error:** The webhook service is experiencing issues
+
+    **Solutions:**
+
+    1. **Verify your webhook URL:**
+       ```bash
+       whecho --debug -m "test" -u "your-url"
+       ```
+       Check the debug output for the detected platform.
+
+    2. **Regenerate your webhook URL** if it's expired or invalid
+
+    3. **Check rate limits** - Discord allows 30 requests per 60 seconds per webhook
+
+    4. **Verify the platform** - Ensure your URL is from a supported service:
+       - Discord: `discord.com` or `discordapp.com`
+       - Slack: `slack.com`
+       - Microsoft Teams: `webhook.office.com`
+       - Webex: `webexapis.com`
+
+    <Tip>
+    Use `--debug` to see the full response details including status codes and error messages.
+    </Tip>
+  </Accordion>
+
+  <Accordion title="Webhook URL Not Working">
+    **Problem:** Your webhook URL doesn't seem to work or messages aren't appearing.
+
+    **Troubleshooting steps:**
+
+    1. **Verify URL format:**
+       - Discord: `https://discord.com/api/webhooks/{id}/{token}`
+       - Slack: `https://hooks.slack.com/services/T00000000/B00000000/XXXXXXXXXXXXXXXXXXXX`
+       - Teams: `https://outlook.office.com/webhook/...`
+       - Webex: `https://webexapis.com/v1/webhooks/incoming/...`
+
+    2. **Test with debug mode:**
+       ```bash
+       whecho --debug -u "your-webhook-url" -m "test message"
+       ```
+
+    3. **Check for URL encoding issues** - Ensure the URL is properly copied without line breaks
+
+    4. **Verify the webhook still exists** in your platform's settings
+
+    5. **Test with curl:**
+       ```bash
+       # For Discord
+       curl -H "Content-Type: application/json" -d '{"content":"test"}' YOUR_URL
+       ```
+
+    <Info>
+    If curl works but whecho doesn't, please report this as a bug in the [GitHub repository](https://github.com/tedivm/whecho).
+    </Info>
+  </Accordion>
+
+  <Accordion title="Config File Corruption">
+    **Problem:** You see warnings like:
+    ```
+    whecho config is corrupted. {key} not found. Loading default value.
+    Please run whecho --init to fix this.
+    ```
+
+    **Cause:** The configuration file is missing required keys, possibly from manual editing or version conflicts.
+
+    **Solution:**
+
+    1. **Let whecho auto-repair:**
+       ```bash
+       whecho --init
+       ```
+       This will load defaults for missing values and let you reconfigure.
+
+    2. **Manual repair:** Edit the config file directly:
+
+       **Config file locations:**
+       - Linux: `~/.config/.whecho/config.toml`
+       - macOS: `~/Library/Application Support/.whecho/config.toml`
+       - Windows: `~\AppData\Roaming\.whecho\config.toml`
+
+       Required keys:
+       ```toml
+       default_url = "your-webhook-url"
+       version = "1.0.0"
+       user = "username"
+       os = "Linux"
+       machine = "auto"
+       ```
+
+    3. **Delete and reinitialize:**
+       ```bash
+       # Linux/macOS
+       rm -rf ~/.config/.whecho
+       whecho --init
+
+       # Windows
+       rd /s %APPDATA%\.whecho
+       whecho --init
+       ```
+
+    <Warning>
+    Deleting the config file will remove your saved webhook URL. Make sure you have it backed up.
+    </Warning>
+  </Accordion>
+
+  <Accordion title="Windows getpass Errors">
+    **Problem:** On Windows, you encounter errors related to `getpass.getuser()`.
+
+    **Cause:** Windows environments (especially in CI/CD or certain terminal contexts) can have issues with `getpass.getuser()`.
+
+    **Solution:** whecho automatically handles this by catching the exception and using a default "user" value. If you see this error:
+
+    1. The error should be handled automatically (see `/home/daytona/workspace/source/whecho/_config.py:13-17`)
+
+    2. If issues persist, manually set the username in config:
+       ```bash
+       whecho --init
+       # When prompted, set your desired username
+       ```
+
+    3. For Python API usage, pass a custom config:
+       ```python
+       conf = {'user': 'your-username', 'machine': 'your-machine'}
+       whecho_simple("message", "url", conf=conf)
+       ```
+  </Accordion>
+
+  <Accordion title="Network and Connectivity Issues">
+    **Problem:** Connection timeouts, network errors, or SSL certificate issues.
+
+    **Solutions:**
+
+    1. **Check your internet connection:**
+       ```bash
+       ping discord.com
+       ```
+
+    2. **Verify firewall settings** - Ensure outbound HTTPS connections are allowed
+
+    3. **Check proxy settings** - If behind a proxy, ensure Python requests library can access it
+
+    4. **SSL certificate issues:**
+       ```bash
+       # Update certifi package
+       pip install --upgrade certifi
+       ```
+
+    5. **Corporate networks** - Some networks block webhook services. Try:
+       - Using a different network
+       - Contacting your IT department
+       - Using a VPN
+
+    <Info>
+    whecho uses the `requests` library for HTTP connections. Any environment variable or configuration that affects requests will also affect whecho.
+    </Info>
+  </Accordion>
+
+  <Accordion title="Platform-Specific Path Issues">
+    **Problem:** Config file isn't found or can't be created on your operating system.
+
+    **Solution:** Verify the config path for your OS:
+
+    - **Linux:** `~/.config/.whecho/config.toml`
+    - **macOS:** `~/Library/Application Support/.whecho/config.toml`
+    - **Windows:** `~\AppData\Roaming\.whecho\config.toml`
+
+    Ensure:
+    1. You have write permissions to these directories
+    2. The parent directories exist (whecho creates them automatically)
+    3. No file permission issues prevent reading/writing
+
+    **Debug config location:**
+    ```bash
+    whecho --debug -m "test"
+    ```
+    Look for the "Config pulled from" line in the output.
+  </Accordion>
+
+  <Accordion title="Messages Not Formatted Correctly">
+    **Problem:** Messages appear differently than expected on different platforms.
+
+    **Explanation:** Each platform has different data format requirements:
+
+    - **Discord:** Supports `username` and `content` fields (see `/home/daytona/workspace/source/whecho/_send_message.py:49-53`)
+    - **Slack/Teams:** Only support `text` field
+    - **Webex:** Uses `markdown` field for rich formatting
+
+    **Solutions:**
+
+    1. **For Webex,** use markdown formatting:
+       ```bash
+       whecho -m "**bold** *italic* [link](https://example.com)"
+       ```
+
+    2. **For Discord,** the username shows as `user@machine` automatically
+
+    3. **For generic webhooks,** whecho sends `{"text": "message"}`
+
+    <Tip>
+    Use `--debug` to see the exact JSON payload being sent to your webhook.
+    </Tip>
+  </Accordion>
+</AccordionGroup>
+
+## Debug Mode
+
+The `--debug` flag is your best friend for troubleshooting. It provides:
+
+- Full argument details
+- Configuration file location and contents
+- Detected webhook platform
+- Complete JSON payload being sent
+- Full HTTP response details
+
+```bash
+whecho --debug -m "test message"
+```
+
+Example debug output:
+```
+Arguments passed: Namespace(debug=True, init=False, message=['test', 'message'], ...)
+Config pulled from: /home/user/.config/.whecho/config.toml
+Config: {'default_url': 'https://discord.com/api/webhooks/...', ...}
+Message: test message
+Detected discord.com in URL
+Data: {'username': 'user@hostname', 'content': 'test message'}
+Response: <Response [204]>
+```
+
+## Getting Help
+
+If you're still experiencing issues:
+
+1. Check the [FAQ](/help/faq) for common questions
+2. Review the [quickstart guide](/quickstart) to ensure proper setup
+3. Enable `--debug` mode and examine the output
+4. Report bugs on the [GitHub repository](https://github.com/tedivm/whecho)
+
+<Card title="Need More Help?" icon="question" href="/help/faq">
+  Check out the FAQ for answers to common questions about whecho.
+</Card>

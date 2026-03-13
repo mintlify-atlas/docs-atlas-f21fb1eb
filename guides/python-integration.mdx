@@ -1,0 +1,394 @@
+---
+title: Python Integration
+description: Use whecho as a Python library to send webhook notifications from your Python applications
+---
+
+## Overview
+
+Whecho can be used as a Python library, allowing you to send webhook notifications directly from your Python code without using the command-line interface.
+
+## Installation
+
+First, install whecho via pip:
+
+```bash
+pip install whecho
+```
+
+## The whecho_simple Function
+
+The main Python API is the `whecho_simple()` function, which sends a message to a webhook URL.
+
+### Import Statement
+
+```python
+from whecho.whecho import whecho_simple
+```
+
+### Function Signature
+
+```python
+def whecho_simple(msg: str, url: str = "", debug: bool = False) -> Optional[requests.models.Response]
+```
+
+### Parameters
+
+<ParamField path="msg" type="string" required>
+  The message to be posted to the webhook. This is the notification content that will be sent.
+</ParamField>
+
+<ParamField path="url" type="string" default="">
+  The webhook URL to send the message to. If not provided or empty, whecho will load the URL from your configuration file (set via `whecho --init`).
+</ParamField>
+
+<ParamField path="debug" type="boolean" default="False">
+  Whether to print debugging information. When `True`, the function returns the response object from the HTTP request.
+</ParamField>
+
+### Return Value
+
+- **Default behavior** (`debug=False`): Returns `None`
+- **Debug mode** (`debug=True`): Returns the `requests.models.Response` object from the POST request
+
+## Basic Usage
+
+### Using Default Configuration
+
+If you've already configured whecho with `whecho --init`, you can send messages without specifying a URL:
+
+```python
+from whecho.whecho import whecho_simple
+
+# Send a simple notification
+whecho_simple("Application started successfully")
+```
+
+### Specifying a URL
+
+You can provide a webhook URL directly:
+
+```python
+from whecho.whecho import whecho_simple
+
+webhook_url = "https://discord.com/api/webhooks/123456789/abcdefg"
+whecho_simple("Deployment completed", url=webhook_url)
+```
+
+### Debug Mode
+
+Enable debug mode to get the response object and see detailed information:
+
+```python
+from whecho.whecho import whecho_simple
+
+response = whecho_simple(
+    "Test message",
+    url="https://discord.com/api/webhooks/123456789/abcdefg",
+    debug=True
+)
+
+if response and response.status_code == 204:
+    print("Message sent successfully!")
+```
+
+## Real-World Examples
+
+### Application Monitoring
+
+```python
+import time
+from whecho.whecho import whecho_simple
+
+def monitor_application():
+    """Monitor application health and send alerts."""
+    try:
+        # Your application logic
+        start_time = time.time()
+        process_data()
+        elapsed = time.time() - start_time
+        
+        whecho_simple(f"✓ Data processing completed in {elapsed:.2f}s")
+    except Exception as e:
+        whecho_simple(f"✗ Application error: {str(e)}")
+        raise
+
+if __name__ == "__main__":
+    monitor_application()
+```
+
+### Web Scraper Notifications
+
+```python
+import requests
+from whecho.whecho import whecho_simple
+
+def scrape_and_notify(url):
+    """Scrape a website and send notification when complete."""
+    whecho_simple(f"Starting scrape of {url}")
+    
+    try:
+        response = requests.get(url)
+        data = response.json()
+        
+        # Process data
+        results = process_scraping_results(data)
+        
+        whecho_simple(
+            f"Scraping complete: {len(results)} items found"
+        )
+        return results
+    except Exception as e:
+        whecho_simple(f"Scraping failed: {str(e)}")
+        raise
+```
+
+### Machine Learning Training
+
+```python
+from whecho.whecho import whecho_simple
+import time
+
+def train_model(epochs=100):
+    """Train ML model with progress notifications."""
+    whecho_simple(f"Starting model training: {epochs} epochs")
+    
+    start_time = time.time()
+    
+    for epoch in range(epochs):
+        # Training logic here
+        loss = train_epoch(epoch)
+        
+        # Notify every 10 epochs
+        if (epoch + 1) % 10 == 0:
+            elapsed = time.time() - start_time
+            whecho_simple(
+                f"Epoch {epoch + 1}/{epochs} - Loss: {loss:.4f} - Time: {elapsed:.1f}s"
+            )
+    
+    total_time = time.time() - start_time
+    whecho_simple(
+        f"✓ Training complete! Total time: {total_time/60:.1f} minutes"
+    )
+```
+
+### Automated Reports
+
+```python
+from whecho.whecho import whecho_simple
+import datetime
+
+def generate_daily_report():
+    """Generate and send daily metrics report."""
+    today = datetime.date.today()
+    
+    # Gather metrics
+    metrics = {
+        'users': get_active_users(),
+        'revenue': get_daily_revenue(),
+        'errors': get_error_count()
+    }
+    
+    # Format report
+    report = f"""Daily Report - {today}
+━━━━━━━━━━━━━━━━━━━━
+Active Users: {metrics['users']}
+Revenue: ${metrics['revenue']:,.2f}
+Errors: {metrics['errors']}
+━━━━━━━━━━━━━━━━━━━━
+"""
+    
+    whecho_simple(report)
+```
+
+### Database Backup Notification
+
+```python
+import subprocess
+from whecho.whecho import whecho_simple
+import os
+
+def backup_database(db_name, backup_path):
+    """Backup database and send notification."""
+    timestamp = datetime.datetime.now().strftime('%Y%m%d_%H%M%S')
+    backup_file = f"{backup_path}/backup_{timestamp}.sql"
+    
+    whecho_simple(f"Starting backup of {db_name}...")
+    
+    try:
+        # Run backup command
+        subprocess.run(
+            ['pg_dump', db_name, '-f', backup_file],
+            check=True
+        )
+        
+        # Get file size
+        size_mb = os.path.getsize(backup_file) / (1024 * 1024)
+        
+        whecho_simple(
+            f"✓ Backup completed: {backup_file} ({size_mb:.1f} MB)"
+        )
+    except subprocess.CalledProcessError as e:
+        whecho_simple(f"✗ Backup failed: {str(e)}")
+        raise
+```
+
+## Error Handling
+
+The `whecho_simple()` function handles errors gracefully:
+
+```python
+from whecho.whecho import whecho_simple
+
+try:
+    whecho_simple("Test message", url="https://invalid-webhook.com/hook")
+except ValueError as e:
+    # Raised when no URL is provided and no config exists
+    print(f"Configuration error: {e}")
+except Exception as e:
+    # Other errors (network issues, invalid webhook, etc.)
+    print(f"Failed to send notification: {e}")
+```
+
+### Common Errors
+
+<Warning>
+  **ValueError: No URL passed. Did you run whecho --init?**
+  
+  This occurs when you don't provide a URL and haven't configured a default URL. Run `whecho --init` from the command line or always pass the `url` parameter.
+</Warning>
+
+<Warning>
+  **ValueError: No message passed**
+  
+  The `msg` parameter is required and cannot be empty. Always provide a message string.
+</Warning>
+
+## Advanced Patterns
+
+### Context Manager for Notifications
+
+```python
+from whecho.whecho import whecho_simple
+import time
+from contextlib import contextmanager
+
+@contextmanager
+def notify_task(task_name, webhook_url=None):
+    """Context manager to notify on task start and completion."""
+    start_time = time.time()
+    whecho_simple(f"Starting: {task_name}", url=webhook_url)
+    
+    try:
+        yield
+        elapsed = time.time() - start_time
+        whecho_simple(
+            f"✓ Completed: {task_name} ({elapsed:.2f}s)",
+            url=webhook_url
+        )
+    except Exception as e:
+        elapsed = time.time() - start_time
+        whecho_simple(
+            f"✗ Failed: {task_name} - {str(e)} ({elapsed:.2f}s)",
+            url=webhook_url
+        )
+        raise
+
+# Usage
+with notify_task("Data processing"):
+    process_large_dataset()
+```
+
+### Decorator for Function Notifications
+
+```python
+from functools import wraps
+from whecho.whecho import whecho_simple
+
+def notify(webhook_url=None):
+    """Decorator to send notifications on function completion."""
+    def decorator(func):
+        @wraps(func)
+        def wrapper(*args, **kwargs):
+            func_name = func.__name__
+            whecho_simple(f"Executing: {func_name}", url=webhook_url)
+            
+            try:
+                result = func(*args, **kwargs)
+                whecho_simple(f"✓ {func_name} completed", url=webhook_url)
+                return result
+            except Exception as e:
+                whecho_simple(f"✗ {func_name} failed: {str(e)}", url=webhook_url)
+                raise
+        return wrapper
+    return decorator
+
+# Usage
+@notify()
+def long_running_task():
+    # Your task logic
+    time.sleep(10)
+    return "Done"
+```
+
+### Multiple Webhook Support
+
+```python
+from whecho.whecho import whecho_simple
+
+class NotificationManager:
+    """Manage multiple webhook destinations."""
+    
+    def __init__(self):
+        self.webhooks = {
+            'dev': 'https://discord.com/api/webhooks/dev/...',
+            'prod': 'https://discord.com/api/webhooks/prod/...',
+            'alerts': 'https://slack.com/api/webhooks/...',
+        }
+    
+    def notify(self, message, channels=None):
+        """Send notification to one or more channels."""
+        if channels is None:
+            channels = ['dev']
+        
+        for channel in channels:
+            if channel in self.webhooks:
+                whecho_simple(message, url=self.webhooks[channel])
+
+# Usage
+notifier = NotificationManager()
+notifier.notify("Deployment started", channels=['dev', 'prod'])
+```
+
+## Best Practices
+
+<Tip>
+  **Store webhook URLs securely**: Use environment variables or configuration files instead of hardcoding webhook URLs in your source code.
+  
+  ```python
+  import os
+  from whecho.whecho import whecho_simple
+  
+  webhook_url = os.getenv('WEBHOOK_URL')
+  whecho_simple("Message", url=webhook_url)
+  ```
+</Tip>
+
+<Tip>
+  **Use debug mode during development**: Enable debug mode when testing to see detailed request/response information.
+</Tip>
+
+<Tip>
+  **Handle exceptions gracefully**: Always wrap whecho calls in try-except blocks if webhook failures shouldn't crash your application.
+  
+  ```python
+  try:
+      whecho_simple("Status update")
+  except Exception:
+      # Log the error but continue execution
+      logger.error("Failed to send webhook notification")
+  ```
+</Tip>
+
+<Info>
+  The `whecho_simple()` function automatically uses your system configuration (username, hostname) when formatting messages for supported platforms like Discord.
+</Info>
